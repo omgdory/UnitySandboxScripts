@@ -11,8 +11,6 @@ public class RacingMenuManager : MonoBehaviour
     private Vector3 displayCarOffset_pos;
     private Vector3 displayCarOffset_rot;
 
-    [SerializeField] private GameObject creditsSubtitle;
-
     [SerializeField] private GameObject playButton;
     [SerializeField] private GameObject settingsButton;
     [SerializeField] private GameObject creditsButton;
@@ -26,8 +24,6 @@ public class RacingMenuManager : MonoBehaviour
         displayCarOffset_pos = display.transform.position;
         displayCarOffset_rot = new Vector3(0,90,0);
         CreateDisplayCar(displayCarOffset_pos, displayCarOffset_rot);
-
-        creditsSubtitle.SetActive(false);
     }
 
     void FixedUpdate()
@@ -68,11 +64,7 @@ public class RacingMenuManager : MonoBehaviour
     }
 
     public void onCreditsButton() {
-        if(creditsSubtitle.activeSelf) {
-            creditsSubtitle.SetActive(false);
-            return;
-        }
-        creditsSubtitle.SetActive(true);
+        // TO DO
     }
 
     public void onQuitButton() {

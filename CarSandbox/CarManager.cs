@@ -21,6 +21,7 @@ public class CarManager : MonoBehaviour
     private Vector3 modelRotationOffset;
     private Rigidbody _rbCar;
 
+    private bool carActive;
     // If car has flipped (share with other scripts --> public)
     public bool upsideDown;
 
@@ -44,20 +45,23 @@ public class CarManager : MonoBehaviour
         // Will add force relative to the X direction of the rigidbody
         // _speed determines magnitude of the force
         if(Input.GetKey(KeyCode.W) && !upsideDown) {
+            carActive = true;
             _rbCar.AddRelativeForce(Vector3.forward * _speed);
             ChangeVolume(engineAudio, 1.0f, audioIncreaseSpeed_engine);
         }
         else if (Input.GetKey(KeyCode.S) && !upsideDown) {
+            carActive = true;
             _rbCar.AddRelativeForce(Vector3.back * _speed);
             ChangeVolume(engineAudio, 1.0f, audioIncreaseSpeed_engine);
         }
         else {
+            carActive = false;
             ChangeVolume(engineAudio, 0.0f, audioIncreaseSpeed_engine);
         }
 
         // Will add a torque to rotate the rb in the clockwise direction
         // _steeringSpeed determines magnitude of the torque
-        if(Input.GetKey(KeyCode.D) && !upsideDown) {
+        if(Input.GetKey(KeyCode.D) && !upsideDown && carActive) {
             if(Input.GetKey(KeyCode.W)) {
                 _rbCar.AddTorque(Vector3.up * _steeringSpeed);
             }
@@ -66,7 +70,7 @@ public class CarManager : MonoBehaviour
             }
             DampenVelocity();
         }
-        else if(Input.GetKey(KeyCode.A) && !upsideDown) {
+        else if(Input.GetKey(KeyCode.A) && !upsideDown && carActive) {
             if(Input.GetKey(KeyCode.W)) {
                 _rbCar.AddTorque(Vector3.down * _steeringSpeed);
             }
@@ -117,6 +121,6 @@ public class CarManager : MonoBehaviour
         transform.position += new Vector3(0,2,0);
 
         // Handle rotation
-        transform.Rotate(new Vector3(0,0,180));
+        transform.Rotate(new Vector3(0,0,-transform.rotation.eulerAngles.z));
     }
 }
