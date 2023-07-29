@@ -9,13 +9,15 @@ public class TextHandler : MonoBehaviour
     private CarManager carManager;
 
     // Reference to player
-    GameObject player;
+    private GameObject player;
+    private Rigidbody rbPlayer;
 
     // Vars for handling UI
     [SerializeField] private GameObject canvas;
-    private GameObject targetObject;
-    private TextMeshProUGUI UI_Speed;
+    private GameObject SpeedTextMeshObject;
     private GameObject FlipPromptTextMeshObject;
+    private GameObject InfoTextMeshObject;
+    private GameObject ToggleInfoButtonObject;
     private double currSpeed;
     private double speedConvert = 1.5;
 
@@ -23,30 +25,38 @@ public class TextHandler : MonoBehaviour
     private bool upsideDown;
 
     void Start() {
-        targetObject = GameObject.Find("PLAYER");
-        if(!canvas.activeSelf)
+        if(!canvas.activeSelf) {
             canvas.SetActive(true);
-        UI_Speed = GameObject.Find("Canvas/UI_Speed").GetComponent<TextMeshProUGUI>();
-        FlipPromptTextMeshObject = GameObject.Find("Canvas/UI_FlipPrompt");
-        FlipPromptTextMeshObject.SetActive(false);
+        }
+        
+        // Find appropriate objects
         canvas = GameObject.Find("Canvas");
+        SpeedTextMeshObject = GameObject.Find("Canvas/UI_Speed");
+        FlipPromptTextMeshObject = GameObject.Find("Canvas/UI_FlipPrompt");
+        InfoTextMeshObject = GameObject.Find("Canvas/UI_Info");
+        ToggleInfoButtonObject = GameObject.Find("Canvas/ToggleInfoButton");
 
+        // Disable flip prompt
+        FlipPromptTextMeshObject.SetActive(false);
+
+        // Set up player variables
         player = GameObject.Find("PLAYER");
         carManager = player.GetComponent<CarManager>();
+        rbPlayer = player.GetComponent<Rigidbody>();
     }
 
     void FixedUpdate() {
         upsideDown = carManager.upsideDown;
 
         currSpeed = GetSpeed() * speedConvert;
-        UI_Speed.text = $"Speed: {currSpeed.ToString("F1")} mph";
+        SpeedTextMeshObject.GetComponent<TextMeshProUGUI>().text = $"Speed: {currSpeed.ToString("F1")} mph";
 
         HandleUpsideDown();
     }
 
     private double GetSpeed() {
         // Object reference not set to an instance of an object
-        double result = targetObject.GetComponent<Rigidbody>().velocity.magnitude;
+        double result = rbPlayer.velocity.magnitude;
         if(result <= 0.1)
             return 0.0;
         return result;
@@ -59,5 +69,18 @@ public class TextHandler : MonoBehaviour
             return;
         }
         FlipPromptTextMeshObject.SetActive(false);
+    }
+
+    // Toggle info on and off
+    public void onToggleInfoButton() {
+        TextMeshProUGUI buttonText = ToggleInfoButtonObject.GetComponentInChildren<TextMeshProUGUI>();
+
+        if(InfoTextMeshObject.activeSelf) {
+            InfoTextMeshObject.SetActive(false);
+            buttonText.text = "Show Info";
+            return;
+        }
+        InfoTextMeshObject.SetActive(true);
+        buttonText.text = "Hide Info";
     }
 }
