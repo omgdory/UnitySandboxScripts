@@ -12,6 +12,8 @@ public class TextHandler : MonoBehaviour
     // Reference to CarManager script (for upsideDown variable)
     private CarManager carManager;
 
+    // https://forum.unity.com/threads/using-gameobject-find.523066/#:~:text=Find%20is%20just%20bad%20is,again%20break%20a%20Find%20call.
+    // https://starmanta.gitbooks.io/unitytipsredux/content/first-question.html
     // Vars for handling UI
     [SerializeField] private GameObject canvas;
     [SerializeField] private GameObject SpeedTextMeshObject;
