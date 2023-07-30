@@ -6,20 +6,39 @@ using UnityEngine;
 // This file handles everything related to the player i.e. the car
 public class CarManager : MonoBehaviour
 {
-    [SerializeField] private float _speed;
-    [SerializeField] private float _steeringSpeed;
-    [SerializeField] private float _maxSpeed;
-    [SerializeField] private float _maxSteeringSpeed;
+    [System.Serializable]
+    public class CarSelection {
+        public float speed;
+        public float steeringSpeed;
+        public float maxSpeed;
+        public float maxSteeringSpeed;
+        public float dampenThreshold;
 
-    [Tooltip("How much velocity is needed until dampening begins to occur")]
-    [SerializeField] private float dampenThreshold;
+        public CarSelection(float spd, float steerSpd, float maxSpd, float maxSteerSpd, float dmpnThrshld) {
+            speed = spd;
+            steeringSpeed = steerSpd;
+            maxSpeed = maxSpd;
+            maxSteeringSpeed = maxSteerSpd;
+            dampenThreshold = dmpnThrshld;
+        }
+    }
+
+    // Dictionary of stats for each car prefab
+    private Dictionary<string, CarSelection> modelStatistics = new Dictionary<string, CarSelection>() {
+        {"Car_Purple", new CarSelection(20, 25, 30, 1, 1)},
+        {"Truck_Red", new CarSelection(20, 45, 30, 1, 1)}
+    };
 
     private AudioSource engineAudio;
     [Tooltip("How fast the engine volume will increase")]
     [SerializeField] private float audioIncreaseSpeed_engine;
 
+    [Tooltip("Model that will be used for the player")]
+    [SerializeField] private GameObject playerModel;
     private Vector3 modelRotationOffset;
     private Rigidbody _rbCar;
+
+    public CarSelection chosenCar;
 
     private bool carActive;
     // If car has flipped (share with other scripts --> public)
@@ -29,13 +48,19 @@ public class CarManager : MonoBehaviour
         _rbCar = GetComponent<Rigidbody>();
         engineAudio = GetComponent<AudioSource>();
 
-        modelRotationOffset = new Vector3(0, 90, 0);
+        modelRotationOffset = new Vector3(0, -90, 0);
+        // Set up player model
+        GameObject obj = Instantiate(playerModel, Vector3.zero, transform.rotation * Vec3toQuat(modelRotationOffset));
+        obj.transform.parent = transform;
+        obj.transform.localPosition = Vector3.zero;
+        // Select car that was chosen
+        chosenCar = modelStatistics[playerModel.name];
     }
 
     private void FixedUpdate() {
         // Do not exceed max speeds
-        _rbCar.velocity = Vector3.ClampMagnitude(_rbCar.velocity, _maxSpeed);
-        _rbCar.angularVelocity = Vector3.ClampMagnitude(_rbCar.angularVelocity, _maxSteeringSpeed);
+        _rbCar.velocity = Vector3.ClampMagnitude(_rbCar.velocity, chosenCar.maxSpeed);
+        _rbCar.angularVelocity = Vector3.ClampMagnitude(_rbCar.angularVelocity, chosenCar.maxSteeringSpeed);
         // Call appropriate functions
         CheckUpsideDown();
         HandleMovement();
@@ -46,12 +71,12 @@ public class CarManager : MonoBehaviour
         // _speed determines magnitude of the force
         if(Input.GetKey(KeyCode.W) && !upsideDown) {
             carActive = true;
-            _rbCar.AddRelativeForce(Vector3.forward * _speed);
+            _rbCar.AddRelativeForce(Vector3.forward * chosenCar.speed);
             ChangeVolume(engineAudio, 1.0f, audioIncreaseSpeed_engine);
         }
         else if (Input.GetKey(KeyCode.S) && !upsideDown) {
             carActive = true;
-            _rbCar.AddRelativeForce(Vector3.back * _speed);
+            _rbCar.AddRelativeForce(Vector3.back * chosenCar.speed);
             ChangeVolume(engineAudio, 1.0f, audioIncreaseSpeed_engine);
         }
         else {
@@ -63,19 +88,19 @@ public class CarManager : MonoBehaviour
         // _steeringSpeed determines magnitude of the torque
         if(Input.GetKey(KeyCode.D) && !upsideDown && carActive) {
             if(Input.GetKey(KeyCode.W)) {
-                _rbCar.AddTorque(Vector3.up * _steeringSpeed);
+                _rbCar.AddTorque(Vector3.up * chosenCar.steeringSpeed);
             }
             else if (Input.GetKey(KeyCode.S)) {
-                _rbCar.AddTorque(Vector3.down * _steeringSpeed);
+                _rbCar.AddTorque(Vector3.down * chosenCar.steeringSpeed);
             }
             DampenVelocity();
         }
         else if(Input.GetKey(KeyCode.A) && !upsideDown && carActive) {
             if(Input.GetKey(KeyCode.W)) {
-                _rbCar.AddTorque(Vector3.down * _steeringSpeed);
+                _rbCar.AddTorque(Vector3.down * chosenCar.steeringSpeed);
             }
             else if (Input.GetKey(KeyCode.S)) {
-                _rbCar.AddTorque(Vector3.up * _steeringSpeed);
+                _rbCar.AddTorque(Vector3.up * chosenCar.steeringSpeed);
             }
             DampenVelocity();
         }
@@ -92,8 +117,8 @@ public class CarManager : MonoBehaviour
         // Get velocity vector that is relative to the car's body
         Vector3 localVelocity = transform.InverseTransformDirection(_rbCar.velocity);
         // Slow down horizontally by counter
-        if(localVelocity.z > dampenThreshold) {
-            _rbCar.AddRelativeForce(new Vector3(0,0,dampenThreshold));
+        if(localVelocity.z > chosenCar.dampenThreshold) {
+            _rbCar.AddRelativeForce(new Vector3(0,0,chosenCar.dampenThreshold));
         }
     }
 
@@ -122,5 +147,9 @@ public class CarManager : MonoBehaviour
 
         // Handle rotation
         transform.Rotate(new Vector3(0,0,-transform.rotation.eulerAngles.z));
+    }
+
+    private Quaternion Vec3toQuat(Vector3 v) {
+        return Quaternion.Euler(v.x, v.y, v.z);
     }
 }
