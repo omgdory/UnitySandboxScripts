@@ -37,7 +37,6 @@ public class CarManager : MonoBehaviour
     [Tooltip("How fast the engine volume will increase")]
     [SerializeField] private float audioIncreaseSpeed_engine;
 
-    [Tooltip("Model that will be used for the player")]
     private GameObject playerModel;
     private Vector3 modelRotationOffset;
     private Rigidbody _rbCar;
@@ -46,9 +45,11 @@ public class CarManager : MonoBehaviour
 
     private bool carActive;
     // If car has flipped (share with other scripts --> public)
-    public bool upsideDown;
+    public static bool upsideDown;
+    public static bool experimentalMode;
 
     private void Start() {
+        experimentalMode = false;
         _rbCar = GetComponent<Rigidbody>();
         engineAudio = GetComponent<AudioSource>();
 
@@ -67,9 +68,11 @@ public class CarManager : MonoBehaviour
     }
 
     private void FixedUpdate() {
-        // Do not exceed max speeds
-        _rbCar.velocity = Vector3.ClampMagnitude(_rbCar.velocity, chosenCar.maxSpeed);
-        _rbCar.angularVelocity = Vector3.ClampMagnitude(_rbCar.angularVelocity, chosenCar.maxSteeringSpeed);
+        // Do not exceed max speeds if not in experimental mode
+        if(!experimentalMode) {
+            _rbCar.velocity = Vector3.ClampMagnitude(_rbCar.velocity, chosenCar.maxSpeed);
+            _rbCar.angularVelocity = Vector3.ClampMagnitude(_rbCar.angularVelocity, chosenCar.maxSteeringSpeed);
+        }
         // Call appropriate functions
         CheckUpsideDown();
         HandleMovement();

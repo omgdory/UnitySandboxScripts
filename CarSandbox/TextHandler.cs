@@ -5,21 +5,19 @@ using TMPro;
 
 public class TextHandler : MonoBehaviour
 {
-
     // Reference to player
     [SerializeField] private GameObject player;
     private Rigidbody rbPlayer;
-    // Reference to CarManager script (for upsideDown variable)
-    private CarManager carManager;
 
     // https://forum.unity.com/threads/using-gameobject-find.523066/#:~:text=Find%20is%20just%20bad%20is,again%20break%20a%20Find%20call.
     // https://starmanta.gitbooks.io/unitytipsredux/content/first-question.html
     // Vars for handling UI
     [SerializeField] private GameObject canvas;
-    [SerializeField] private GameObject SpeedTextMeshObject;
-    [SerializeField] private GameObject FlipPromptTextMeshObject;
-    [SerializeField] private GameObject InfoTextMeshObject;
+    [SerializeField] private GameObject SpeedTMPObject;
+    [SerializeField] private GameObject FlipPromptTMPObject;
+    [SerializeField] private GameObject InfoTMPObject;
     [SerializeField] private GameObject ToggleInfoButtonObject;
+    [SerializeField] private GameObject ToggleExpModeButtonObject;
     private double currSpeed;
     private double speedConversionFactor = 1.5;
 
@@ -32,18 +30,15 @@ public class TextHandler : MonoBehaviour
         }
 
         // Disable flip prompt
-        FlipPromptTextMeshObject.SetActive(false);
+        FlipPromptTMPObject.SetActive(false);
 
         // Set up player variables
-        carManager = player.GetComponent<CarManager>();
         rbPlayer = player.GetComponent<Rigidbody>();
     }
 
     void FixedUpdate() {
-        upsideDown = carManager.upsideDown;
-
         currSpeed = GetSpeedActualSpeed() * speedConversionFactor;
-        SpeedTextMeshObject.GetComponent<TextMeshProUGUI>().text = $"Speed: {currSpeed.ToString("F1")} mph";
+        SpeedTMPObject.GetComponent<TextMeshProUGUI>().text = $"Speed: {currSpeed.ToString("F1")} mph";
 
         HandleUpsideDown();
     }
@@ -55,23 +50,37 @@ public class TextHandler : MonoBehaviour
 
     private void HandleUpsideDown() {
         // If upside down, prompt to flip car
-        if(upsideDown) {
-            FlipPromptTextMeshObject.SetActive(true);
+        if(CarManager.upsideDown) {
+            FlipPromptTMPObject.SetActive(true);
             return;
         }
-        FlipPromptTextMeshObject.SetActive(false);
+        FlipPromptTMPObject.SetActive(false);
     }
 
     // Toggle info on and off
     public void onToggleInfoButton() {
         TextMeshProUGUI buttonText = ToggleInfoButtonObject.GetComponentInChildren<TextMeshProUGUI>();
 
-        if(InfoTextMeshObject.activeSelf) {
-            InfoTextMeshObject.SetActive(false);
+        if(InfoTMPObject.activeSelf) {
+            InfoTMPObject.SetActive(false);
             buttonText.text = "Show Info";
             return;
         }
-        InfoTextMeshObject.SetActive(true);
+        InfoTMPObject.SetActive(true);
         buttonText.text = "Hide Info";
+    }
+
+    // Toggle experimental mode
+    public void onToggleExperimentalModeButton() {
+        TextMeshProUGUI buttonText = ToggleExpModeButtonObject.GetComponentInChildren<TextMeshProUGUI>();
+
+        if(CarManager.experimentalMode) {
+            CarManager.experimentalMode = false;
+            buttonText.text = "Experimental Mode is off";
+            return;
+        }
+        CarManager.experimentalMode = true;
+        buttonText.text = "Experimental Mode is on";
+        return;
     }
 }
