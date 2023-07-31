@@ -6,6 +6,9 @@ using UnityEngine;
 // This file handles everything related to the player i.e. the car
 public class CarManager : MonoBehaviour
 {
+    // Reference menu script for car selection
+    private RacingMenuManager.carData selectedCarData;
+
     [System.Serializable]
     public class CarSelection {
         public float speed;
@@ -26,7 +29,8 @@ public class CarManager : MonoBehaviour
     // Dictionary of stats for each car prefab
     private Dictionary<string, CarSelection> modelStatistics = new Dictionary<string, CarSelection>() {
         {"Car_Purple", new CarSelection(20, 25, 30, 1, 1)},
-        {"Truck_Red", new CarSelection(20, 45, 30, 1, 1)}
+        {"Truck_Red", new CarSelection(20, 45, 30, 1, 1)},
+        {"Bus_Blue", new CarSelection(20, 45, 30, 1, 1)}
     };
 
     private AudioSource engineAudio;
@@ -34,7 +38,7 @@ public class CarManager : MonoBehaviour
     [SerializeField] private float audioIncreaseSpeed_engine;
 
     [Tooltip("Model that will be used for the player")]
-    [SerializeField] private GameObject playerModel;
+    private GameObject playerModel;
     private Vector3 modelRotationOffset;
     private Rigidbody _rbCar;
 
@@ -49,12 +53,17 @@ public class CarManager : MonoBehaviour
         engineAudio = GetComponent<AudioSource>();
 
         modelRotationOffset = new Vector3(0, -90, 0);
+
+        selectedCarData = RacingMenuManager.currentSelection.Value;
         // Set up player model
+        playerModel = selectedCarData.prefab;
         GameObject obj = Instantiate(playerModel, Vector3.zero, transform.rotation * Vec3toQuat(modelRotationOffset));
         obj.transform.parent = transform;
         obj.transform.localPosition = Vector3.zero;
+
         // Select car that was chosen
-        chosenCar = modelStatistics[playerModel.name];
+        string chosenName = selectedCarData.name;
+        chosenCar = modelStatistics[chosenName];
     }
 
     private void FixedUpdate() {
@@ -149,6 +158,7 @@ public class CarManager : MonoBehaviour
         transform.Rotate(new Vector3(0,0,-transform.rotation.eulerAngles.z));
     }
 
+    /* Converts a Vector3 of euler angles to Quaternion */
     private Quaternion Vec3toQuat(Vector3 v) {
         return Quaternion.Euler(v.x, v.y, v.z);
     }
