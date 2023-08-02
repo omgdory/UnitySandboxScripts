@@ -9,8 +9,8 @@ public class PlayerInteractions : MonoBehaviour
 
     [Tooltip("Prefab that will be spawned")]
     [SerializeField] private GameObject objectToSpawn;
-    [Tooltip("Where to spawn objects")]
-    [SerializeField] private Transform level;
+    // [Tooltip("Where to spawn objects")]
+    // [SerializeField] private Transform level;
 
     private Stack<GameObject> spawnedProps;
     private GameObject newestProp; // most recently spawned prop
@@ -22,7 +22,7 @@ public class PlayerInteractions : MonoBehaviour
     private Ray rayOrigin;
     private RaycastHit hitInfo;
 
-    void Start() {
+    void Awake() {
         spawnedProps = new Stack<GameObject>();
 
         relativeCamera = Camera.main; // in case we want to use a different camera later along the line
@@ -38,7 +38,7 @@ public class PlayerInteractions : MonoBehaviour
         if(Input.GetKeyDown(KeyCode.E)) {
             if(Physics.Raycast(cameraTransform.position, cameraTransform.forward, out hitInfo, 100.0f)) {
                 newestProp = CreateRelativeObject(transform.gameObject, objectToSpawn, hitInfo.point);
-                newestProp.transform.parent = level;
+                // newestProp.transform.parent = level;
                 spawnedProps.Push(newestProp);
             }
         }

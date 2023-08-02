@@ -5,11 +5,8 @@ using UnityEngine;
 public class CameraSmoothFollow : MonoBehaviour
 {
     // https://www.youtube.com/watch?v=MFQhpwc6cKE&t=59s
-
-    [SerializeField] private Transform target1;
-    [SerializeField] private Transform target2;
-    private Vector3 Target1_Offset = new Vector3(15,0,0);
-    private Vector3 Target2_Offset = new Vector3(15,180,0);
+    private Vector3 TargetFwd_Offset = new Vector3(15,0,0);
+    private Vector3 TargetBack_Offset = new Vector3(15,180,0);
     
     // speed at which camera will return to position
     private float smoothSpeed = 10f;
@@ -37,26 +34,26 @@ public class CameraSmoothFollow : MonoBehaviour
 
     void HandleCamera() {
         if(cameraSelection == 0) {
-            HandleCameraTarget1();
+            HandleCameraTargetForward();
         }
         else if(cameraSelection == 1) {
-            HandleCameraTarget2();
+            HandleCameraTargetBackward();
         }
     }
 
-    void HandleCameraTarget1() {
+    void HandleCameraTargetForward() {
         // Handle movement; Lerp between current and targetted position
-        Vector3 smoothedPosition = Vector3.Lerp(transform.position, target1.position, smoothSpeed * Time.deltaTime);
+        Vector3 smoothedPosition = Vector3.Lerp(transform.position, CarManager.CamTarget_fwd.position, smoothSpeed * Time.deltaTime);
         transform.position = smoothedPosition;
         // Handle rotation; multiply offset by target rotation
-        transform.rotation = target1.rotation * Quaternion.Euler(Target1_Offset);
+        transform.rotation = CarManager.CamTarget_fwd.rotation * Quaternion.Euler(TargetFwd_Offset);
     }
 
-    void HandleCameraTarget2() {
+    void HandleCameraTargetBackward() {
         // Handle movement; Lerp between current and targetted position
-        Vector3 smoothedPosition = Vector3.Lerp(transform.position, target2.position, smoothSpeed * Time.deltaTime);
+        Vector3 smoothedPosition = Vector3.Lerp(transform.position, CarManager.CamTarget_back.position, smoothSpeed * Time.deltaTime);
         transform.position = smoothedPosition;
         // Handle rotation; multiply offset by target rotation
-        transform.rotation = target2.rotation * Quaternion.Euler(Target2_Offset);
+        transform.rotation = CarManager.CamTarget_back.rotation * Quaternion.Euler(TargetBack_Offset);
     }
 }

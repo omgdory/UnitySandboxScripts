@@ -26,6 +26,9 @@ public class CarManager : MonoBehaviour
         }
     }
 
+    public static Transform CamTarget_fwd;
+    public static Transform CamTarget_back;
+
     // Dictionary of stats for each car prefab
     private Dictionary<string, CarSelection> modelStatistics = new Dictionary<string, CarSelection>() {
         {"Car_Purple", new CarSelection(20, 25, 30, 1, 1)},
@@ -39,19 +42,22 @@ public class CarManager : MonoBehaviour
 
     private GameObject playerModel;
     private Vector3 modelRotationOffset;
-    private Rigidbody _rbCar;
+    public static Rigidbody _rbCar;
 
     public CarSelection chosenCar;
 
-    private bool carActive;
     // If car has flipped (share with other scripts --> public)
     public static bool upsideDown;
     public static bool experimentalMode;
 
-    private void Start() {
+    private void Awake() {
         experimentalMode = false;
         _rbCar = GetComponent<Rigidbody>();
         engineAudio = GetComponent<AudioSource>();
+
+        // Spawn camera targets
+        CamTarget_fwd = CreateEmptyGameObject("CamTarget_fwd", new Vector3(0,7,-15));
+        CamTarget_back = CreateEmptyGameObject("CamTarget_back", new Vector3(0,7,15));
 
         modelRotationOffset = new Vector3(0, -90, 0);
 
@@ -78,44 +84,73 @@ public class CarManager : MonoBehaviour
         HandleMovement();
     }
 
+    /* Creates an empty GameObject as a child of the object this script is attached to
+        @param name Name that will be given to the GameObject
+        @param postion Position of the GameObject relative to the parent
+        @return Transform variable of which to assign the empty GameObject
+    */
+    private Transform CreateEmptyGameObject(string name, Vector3 position) {
+        Transform var;
+        var = new GameObject($"{name}").transform;
+        var.parent = transform;
+        var.localPosition = position;
+
+        return var;
+    }
+
     private void HandleMovement() {
         // Will add force relative to the X direction of the rigidbody
         // _speed determines magnitude of the force
         if(Input.GetKey(KeyCode.W) && !upsideDown) {
-            carActive = true;
             _rbCar.AddRelativeForce(Vector3.forward * chosenCar.speed);
             ChangeVolume(engineAudio, 1.0f, audioIncreaseSpeed_engine);
+            if(Input.GetKey(KeyCode.D)) {
+                // clockwise relative to object's Y axis
+                _rbCar.AddRelativeTorque(Vector3.up * chosenCar.steeringSpeed);
+            } else if (Input.GetKey(KeyCode.A)) {
+                // counter clockwise relative to object's Y axis
+                _rbCar.AddRelativeTorque(Vector3.down * chosenCar.steeringSpeed);
+            }
+            DampenHorizontalVelocity();
         }
         else if (Input.GetKey(KeyCode.S) && !upsideDown) {
-            carActive = true;
             _rbCar.AddRelativeForce(Vector3.back * chosenCar.speed);
             ChangeVolume(engineAudio, 1.0f, audioIncreaseSpeed_engine);
+            if(Input.GetKey(KeyCode.D)) {
+                // clockwise relative to object's Y axis
+                _rbCar.AddRelativeTorque(Vector3.down * chosenCar.steeringSpeed);
+            } else if (Input.GetKey(KeyCode.A)) {
+                // counter clockwise relative to object's Y axis
+                _rbCar.AddRelativeTorque(Vector3.up * chosenCar.steeringSpeed);
+            }
+            DampenHorizontalVelocity();
         }
         else {
-            carActive = false;
             ChangeVolume(engineAudio, 0.0f, audioIncreaseSpeed_engine);
         }
 
         // Will add a torque to rotate the rb in the clockwise direction
         // _steeringSpeed determines magnitude of the torque
-        if(Input.GetKey(KeyCode.D) && !upsideDown && carActive) {
-            if(Input.GetKey(KeyCode.W)) {
-                _rbCar.AddTorque(Vector3.up * chosenCar.steeringSpeed);
-            }
-            else if (Input.GetKey(KeyCode.S)) {
-                _rbCar.AddTorque(Vector3.down * chosenCar.steeringSpeed);
-            }
-            DampenVelocity();
-        }
-        else if(Input.GetKey(KeyCode.A) && !upsideDown && carActive) {
-            if(Input.GetKey(KeyCode.W)) {
-                _rbCar.AddTorque(Vector3.down * chosenCar.steeringSpeed);
-            }
-            else if (Input.GetKey(KeyCode.S)) {
-                _rbCar.AddTorque(Vector3.up * chosenCar.steeringSpeed);
-            }
-            DampenVelocity();
-        }
+        // if(Input.GetKey(KeyCode.D) && !upsideDown && carActive) {
+        //     if(Input.GetKey(KeyCode.W)) {
+                
+        //     }
+        //     else if (Input.GetKey(KeyCode.S)) {
+        //         // counter clockwise relative to object's Y axis
+        //         _rbCar.AddRelativeTorque(Vector3.down * chosenCar.steeringSpeed);
+        //     }
+        //     DampenHorizontalVelocity();
+        // }
+        // else if(Input.GetKey(KeyCode.A) && !upsideDown && carActive) {
+        //     if(Input.GetKey(KeyCode.W)) {
+                
+        //     }
+        //     else if (Input.GetKey(KeyCode.S)) {
+        //         // clockwise relative to object's Y axis
+        //         _rbCar.AddRelativeTorque(Vector3.up * chosenCar.steeringSpeed);
+        //     }
+        //     DampenHorizontalVelocity();
+        // }
 
         // Flip rightside up if upside down and if not too high
         if(upsideDown && Input.GetKey(KeyCode.F)) {
@@ -124,7 +159,7 @@ public class CarManager : MonoBehaviour
     }
 
     // Stops car from skidding too far; drag can only do so much...
-    private void DampenVelocity() {
+    private void DampenHorizontalVelocity() {
         // https://discussions.unity.com/t/velocity-relative-to-local-axis/32800
         // Get velocity vector that is relative to the car's body
         Vector3 localVelocity = transform.InverseTransformDirection(_rbCar.velocity);
