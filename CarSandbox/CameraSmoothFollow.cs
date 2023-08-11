@@ -14,14 +14,11 @@ public class CameraSmoothFollow : MonoBehaviour
     private int cameraSelection = 0;
     private int maxTargets = 2;
 
-    void Update() {
+    void FixedUpdate() {
+        HandleCamera();
         if(Input.GetKeyDown(KeyCode.Tab)) {
             SwapSelection();
         }
-    }
-
-    void FixedUpdate() {
-        HandleCamera();
     }
 
     void SwapSelection() {

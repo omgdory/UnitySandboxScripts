@@ -129,32 +129,11 @@ public class CarManager : MonoBehaviour
             ChangeVolume(engineAudio, 0.0f, audioIncreaseSpeed_engine);
         }
 
-        // Will add a torque to rotate the rb in the clockwise direction
-        // _steeringSpeed determines magnitude of the torque
-        // if(Input.GetKey(KeyCode.D) && !upsideDown && carActive) {
-        //     if(Input.GetKey(KeyCode.W)) {
-                
-        //     }
-        //     else if (Input.GetKey(KeyCode.S)) {
-        //         // counter clockwise relative to object's Y axis
-        //         _rbCar.AddRelativeTorque(Vector3.down * chosenCar.steeringSpeed);
-        //     }
-        //     DampenHorizontalVelocity();
-        // }
-        // else if(Input.GetKey(KeyCode.A) && !upsideDown && carActive) {
-        //     if(Input.GetKey(KeyCode.W)) {
-                
-        //     }
-        //     else if (Input.GetKey(KeyCode.S)) {
-        //         // clockwise relative to object's Y axis
-        //         _rbCar.AddRelativeTorque(Vector3.up * chosenCar.steeringSpeed);
-        //     }
-        //     DampenHorizontalVelocity();
-        // }
-
-        // Flip rightside up if upside down and if not too high
+        // Flip rightside up if upside down
         if(upsideDown && Input.GetKey(KeyCode.F)) {
-            MakeVehicleUpright();
+            transform.position += new Vector3(0,2,0);
+            // Handle rotation
+            transform.Rotate(new Vector3(0,0,-transform.rotation.eulerAngles.z));
         }
     }
 
@@ -185,15 +164,6 @@ public class CarManager : MonoBehaviour
         } else {
             upsideDown = false;
         }
-    }
-
-    private void MakeVehicleUpright() {
-        // Handle movement; Lerp between current and targetted position
-        // Vector3 smoothedPosition = Vector3.Lerp(transform.position, transform.position + new Vector3(0,5,0), _LerpTime * Time.deltaTime);
-        transform.position += new Vector3(0,2,0);
-
-        // Handle rotation
-        transform.Rotate(new Vector3(0,0,-transform.rotation.eulerAngles.z));
     }
 
     /* Converts a Vector3 of euler angles to Quaternion */

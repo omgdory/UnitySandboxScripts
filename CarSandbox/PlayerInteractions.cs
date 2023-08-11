@@ -37,13 +37,14 @@ public class PlayerInteractions : MonoBehaviour
         // Spawn prop
         if(Input.GetKeyDown(KeyCode.E)) {
             if(Physics.Raycast(cameraTransform.position, cameraTransform.forward, out hitInfo, 100.0f)) {
-                newestProp = CreateRelativeObject(transform.gameObject, objectToSpawn, hitInfo.point);
+                newestProp = CreateRelativeObject(transform.gameObject, objectToSpawn, hitInfo.point + new Vector3(0, 1, 0));
                 // newestProp.transform.parent = level;
                 spawnedProps.Push(newestProp);
             }
         }
         // Undo
         if(Input.GetKeyDown(KeyCode.Z)) {
+            // Only undo if there are any spawnedProps
             if(spawnedProps.Count != 0) {
                 Destroy(newestProp);
                 spawnedProps.Pop();
@@ -55,10 +56,10 @@ public class PlayerInteractions : MonoBehaviour
     /* Function to instantiate object relative to another
         @param src Source object
         @param obj Object to spawn
-        @param position Position of which to spawn */
+        @param position Position of which to spawn
+        @return The GameObject that becomes created */
     private GameObject CreateRelativeObject(GameObject src, GameObject obj, Vector3 position) {
-        Vector3 positionOffset = new Vector3(0, 1, 0);
-        GameObject result = Instantiate(obj, position + positionOffset, Quaternion.identity);
+        GameObject result = Instantiate(obj, position, Quaternion.identity);
         // Match rotation of spawned object to that of src object
         result.transform.Rotate(src.transform.rotation.eulerAngles);
         return result;
