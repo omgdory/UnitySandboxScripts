@@ -11,15 +11,32 @@ Shader "Unlit/MyFirstShader"
     }
     SubShader
     {
-        Tags { "RenderType"="Opaque" }
+        // "RenderType"="Opaque" is default
+        Tags {
+            "RenderType"="Transparent" // tag for render pipeline and post-processing
+            "Queue"="Transparent" // changes the render order
+        }
 
         Pass
         {
+            // additive blending "Blend x y"
+            //  where color = (src*x)+(dst*y)
+            
+            Cull Off // will render all sides of mesh (default is "Cull Back")
+            ZWrite Off // do not write to depth buffer (anything that writes to depthbuffer will render in front)
+            //ZTest LEqual // if less than or equal to what is already written to depth buffer, then show it (default)
+            //ZTest GEqual // will only render if behind something (very useful!!!)
+
+            // Blend One One // additive (lighter); (src*1)+(dst*1)
+            Blend DstColor Zero // multiplicative (darker); (src*dst)+(dst*0)
+
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
 
             #include "UnityCG.cginc"
+
+            #define PI 3.14159265358979323
 
             float4 _ColorA;
             float4 _ColorB;
@@ -30,6 +47,7 @@ Shader "Unlit/MyFirstShader"
             struct appdata
             {
                 float4 vertex : POSITION;
+                // TEXCOORD channels here specifically refers to UV channels
                 float2 uv : TEXCOORD0;
             };
 
@@ -37,6 +55,7 @@ Shader "Unlit/MyFirstShader"
             struct v2f
             {
                 float4 vertex : SV_POSITION;
+                // TEXCOORD channels here can be anything; they are unrelated to "appdata" TEXCOORD channels
                 float2 uv : TEXCOORD0;
             };
 
