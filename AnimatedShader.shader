@@ -17,7 +17,7 @@ Shader "Unlit/AnimatedShader"
 
         Pass
         {
-            // tags
+            // Tags
             Cull Off
             ZWrite Off
             ZTest LEqual
@@ -60,17 +60,12 @@ Shader "Unlit/AnimatedShader"
 
             fixed4 frag (v2f i) : SV_Target
             {
-                
                 // cosine wave along the horizontals of the uv map
                 float xOffset = cos(i.uv.x * 2 * PI * 8) * 0.01;
-
-                float t = 0;
-
-                t = cos( ((i.uv.x*_Rotation + i.uv.y*(1-_Rotation)) + xOffset - _Time.y * 0.1) * 2 * PI * 5 ) * 0.5 + 0.5;
-                // fragment gets darker as it is rendered higher on the uv map
-                t *= 1-i.uv.y;
-                // Only render if normal is not pointing up or down
-                float topBottomRemover = (abs(i.normal.y) < 0.999f);
+                // trig......
+                float t = cos( ((i.uv.x*_Rotation + i.uv.y*(1-_Rotation)) + xOffset - _Time.y * 0.1) * 2 * PI * 5 ) * 0.5 + 0.5;
+                t *= 1-i.uv.y; // darkens pixel as y value increases --> fading
+                float topBottomRemover = (abs(i.normal.y) < 0.999f); // Only render if normal is not pointing up or down
                 
                 float waves = t * topBottomRemover;
 
