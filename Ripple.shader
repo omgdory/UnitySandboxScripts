@@ -3,6 +3,8 @@ Shader "Custom/RippleShader"
     // https://www.youtube.com/watch?v=kfM-yu0iQBk&list=WL&index=5&t=9632s
     Properties
     {
+        _MainTex ("Texture", 2D) = "grey" {}
+
         _wavelengthX ("Wavelength X", Range(0,30)) = 10
         _wavelengthY ("Wavelength Y", Range(0,30)) = 10
         _WaveAmplitude ("Wave Amplitude", Range(0,5)) = 1
@@ -28,6 +30,9 @@ Shader "Custom/RippleShader"
             #pragma fragment Frag
 
             #define PI 3.14159265358979323
+
+            sampler2D _MainTex;
+            float4 _MainTex_ST;
 
             float _wavelengthX;
             float _wavelengthY;
@@ -61,7 +66,7 @@ Shader "Custom/RippleShader"
 
                 a.positionOS.y = GetWave(a.uv0) * _WaveAmplitude;
                 i.positionCS = UnityObjectToClipPos(a.positionOS);
-                i.uv = a.uv0;
+                i.uv = TRANSFORM_TEX(a.uv0, _MainTex);
                 return i; 
             }
             // ----------------------------------------------------------------------------
@@ -72,7 +77,9 @@ Shader "Custom/RippleShader"
                 // return wave;
                 
                 // freya's solution
-                return GetWave(i.uv);
+                float4 col = tex2D(_MainTex, i.uv);
+                return col;
+                //return GetWave(i.uv);
             }
             // ----------------------------------------------------------------------------
             ENDHLSL
