@@ -17,6 +17,7 @@ public class BoardManager : MonoBehaviour
             cell_count++;
             prefab = Instantiate(cell_pfab, Vector3.zero, Quaternion.identity);
             prefab.name = $"Cell {cell_ID}";
+            prefab.GetComponent<Outline>().enabled = false;
         }
 
         public BoardCell(GameObject cell_pfab, Vector3 position) {
@@ -24,6 +25,7 @@ public class BoardManager : MonoBehaviour
             cell_count++;
             prefab = Instantiate(cell_pfab, position, Quaternion.identity);
             prefab.name = $"Cell {cell_ID}";
+            prefab.GetComponent<Outline>().enabled = false;
         }
 
         ~BoardCell() {

@@ -16,6 +16,9 @@ public class CameraSmoothFollow : MonoBehaviour
 
     void FixedUpdate() {
         HandleCamera();
+    }
+
+    void Update() {
         if(Input.GetKeyDown(KeyCode.Tab)) {
             SwapSelection();
         }

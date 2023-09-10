@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using Mono.Cecil.Cil;
 using UnityEngine;
 
 
@@ -46,6 +48,19 @@ public class CarManager : MonoBehaviour
 
     public CarSelection chosenCar;
 
+    // So that input can be called in Update but physics handled in FixedUpdate
+    public enum MoveKey {
+        W,
+        A,
+        S,
+        D,
+        F
+    }
+    // Get amount of keys
+    public static int MoveKey_amount = Enum.GetValues(typeof(MoveKey)).Length;
+    // Array for which keys are being held
+    bool[] heldKey = new bool[MoveKey_amount];
+
     // If car has flipped (share with other scripts --> public)
     public static bool upsideDown;
     public static bool experimentalMode;
@@ -84,6 +99,10 @@ public class CarManager : MonoBehaviour
         HandleMovement();
     }
 
+    private void Update() {
+        HandleMovementInput();
+    }
+
     /* Creates an empty GameObject as a child of the object this script is attached to
         @param name Name that will be given to the GameObject
         @param postion Position of the GameObject relative to the parent
@@ -98,28 +117,27 @@ public class CarManager : MonoBehaviour
         return var;
     }
 
+    // Handle movement physics (in FixedUpdate)
     private void HandleMovement() {
-        // Will add force relative to the X direction of the rigidbody
-        // _speed determines magnitude of the force
-        if(Input.GetKey(KeyCode.W) && !upsideDown) {
+        if(heldKey[(int)MoveKey.W] && !upsideDown) {
             _rbCar.AddRelativeForce(Vector3.forward * chosenCar.speed);
             ChangeVolume(engineAudio, 1.0f, audioIncreaseSpeed_engine);
-            if(Input.GetKey(KeyCode.D)) {
+            if(heldKey[(int)MoveKey.D]) {
                 // clockwise relative to object's Y axis
                 _rbCar.AddRelativeTorque(Vector3.up * chosenCar.steeringSpeed);
-            } else if (Input.GetKey(KeyCode.A)) {
+            } else if (heldKey[(int)MoveKey.A]) {
                 // counter clockwise relative to object's Y axis
                 _rbCar.AddRelativeTorque(Vector3.down * chosenCar.steeringSpeed);
             }
             DampenHorizontalVelocity();
         }
-        else if (Input.GetKey(KeyCode.S) && !upsideDown) {
+        else if (heldKey[(int)MoveKey.S] && !upsideDown) {
             _rbCar.AddRelativeForce(Vector3.back * chosenCar.speed);
             ChangeVolume(engineAudio, 1.0f, audioIncreaseSpeed_engine);
-            if(Input.GetKey(KeyCode.D)) {
+            if(heldKey[(int)MoveKey.D]) {
                 // clockwise relative to object's Y axis
                 _rbCar.AddRelativeTorque(Vector3.down * chosenCar.steeringSpeed);
-            } else if (Input.GetKey(KeyCode.A)) {
+            } else if (heldKey[(int)MoveKey.A]) {
                 // counter clockwise relative to object's Y axis
                 _rbCar.AddRelativeTorque(Vector3.up * chosenCar.steeringSpeed);
             }
@@ -130,10 +148,55 @@ public class CarManager : MonoBehaviour
         }
 
         // Flip rightside up if upside down
-        if(upsideDown && Input.GetKey(KeyCode.F)) {
+        if(upsideDown && heldKey[(int)MoveKey.F]) {
             transform.position += new Vector3(0,2,0);
             // Handle rotation
             transform.Rotate(new Vector3(0,0,-transform.rotation.eulerAngles.z));
+        }
+    }
+
+    // Handle movement input (in Update)
+    private void HandleMovementInput() {
+        foreach(var k in Enum.GetNames(typeof(MoveKey))) {
+            // Ensure that movement key is defined in Unity
+            if(Enum.IsDefined(typeof(KeyCode), k)) {
+                // https://www.loginradius.com/blog/engineering/enum-csharp/
+                KeyCode kc = (KeyCode)Enum.Parse(typeof(KeyCode), k);
+                if (Input.GetKeyDown(kc)) {
+                    heldKey[(int)Enum.Parse(typeof(MoveKey), k)] = true;
+                } else if (Input.GetKeyUp(kc)) {
+                    heldKey[(int)Enum.Parse(typeof(MoveKey), k)] = false;
+                }
+            } else {
+                Debug.Log($"Key {k} does not exist in KeyCode enum. Remove it!");
+            }
+        }
+
+        
+        if (Input.GetKeyDown(KeyCode.A)) {
+            heldKey[(int)MoveKey.A] = true;
+        } else if (Input.GetKeyUp(KeyCode.A)) {
+            heldKey[(int)MoveKey.A] = false;
+        }
+        if (Input.GetKeyDown(KeyCode.A)) {
+            heldKey[(int)MoveKey.A] = true;
+        } else if (Input.GetKeyUp(KeyCode.A)) {
+            heldKey[(int)MoveKey.A] = false;
+        }
+        if (Input.GetKeyDown(KeyCode.S)) {
+            heldKey[(int)MoveKey.S] = true;
+        } else if (Input.GetKeyUp(KeyCode.S)) {
+            heldKey[(int)MoveKey.S] = false;
+        }
+        if (Input.GetKeyDown(KeyCode.D)) {
+            heldKey[(int)MoveKey.D] = true;
+        } else if (Input.GetKeyUp(KeyCode.D)) {
+            heldKey[(int)MoveKey.D] = false;
+        }
+        if (Input.GetKeyDown(KeyCode.F)) {
+            heldKey[(int)MoveKey.F] = true;
+        } else if (Input.GetKeyUp(KeyCode.F)) {
+            heldKey[(int)MoveKey.F] = false;
         }
     }
 

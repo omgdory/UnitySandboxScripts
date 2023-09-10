@@ -77,9 +77,11 @@ Shader "Custom/RippleShader"
                 // return wave;
                 
                 // freya's solution
+                //return GetWave(i.uv);
+                
+                // adding texture
                 float4 col = tex2D(_MainTex, i.uv);
                 return col;
-                //return GetWave(i.uv);
             }
             // ----------------------------------------------------------------------------
             ENDHLSL
