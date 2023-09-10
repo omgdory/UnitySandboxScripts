@@ -171,33 +171,6 @@ public class CarManager : MonoBehaviour
                 Debug.Log($"Key {k} does not exist in KeyCode enum. Remove it!");
             }
         }
-
-        
-        if (Input.GetKeyDown(KeyCode.A)) {
-            heldKey[(int)MoveKey.A] = true;
-        } else if (Input.GetKeyUp(KeyCode.A)) {
-            heldKey[(int)MoveKey.A] = false;
-        }
-        if (Input.GetKeyDown(KeyCode.A)) {
-            heldKey[(int)MoveKey.A] = true;
-        } else if (Input.GetKeyUp(KeyCode.A)) {
-            heldKey[(int)MoveKey.A] = false;
-        }
-        if (Input.GetKeyDown(KeyCode.S)) {
-            heldKey[(int)MoveKey.S] = true;
-        } else if (Input.GetKeyUp(KeyCode.S)) {
-            heldKey[(int)MoveKey.S] = false;
-        }
-        if (Input.GetKeyDown(KeyCode.D)) {
-            heldKey[(int)MoveKey.D] = true;
-        } else if (Input.GetKeyUp(KeyCode.D)) {
-            heldKey[(int)MoveKey.D] = false;
-        }
-        if (Input.GetKeyDown(KeyCode.F)) {
-            heldKey[(int)MoveKey.F] = true;
-        } else if (Input.GetKeyUp(KeyCode.F)) {
-            heldKey[(int)MoveKey.F] = false;
-        }
     }
 
     // Stops car from skidding too far; drag can only do so much...
