@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Mono.Cecil.Cil;
 using UnityEngine;
 
@@ -58,12 +59,14 @@ public class CarManager : MonoBehaviour
     }
     // Get amount of keys
     public static int MoveKey_amount = Enum.GetValues(typeof(MoveKey)).Length;
-    // Array for which keys are being held
     bool[] heldKey = new bool[MoveKey_amount];
 
     // If car has flipped (share with other scripts --> public)
     public static bool upsideDown;
     public static bool experimentalMode;
+
+    /* Converts a Vector3 of euler angles to Quaternion */
+    Func<Vector3, Quaternion> Vec3toQuat = v => Quaternion.Euler(v.x, v.y, v.z);
 
     private void Awake() {
         experimentalMode = false;
@@ -71,8 +74,8 @@ public class CarManager : MonoBehaviour
         engineAudio = GetComponent<AudioSource>();
 
         // Spawn camera targets
-        CamTarget_fwd = CreateEmptyGameObject("CamTarget_fwd", new Vector3(0,7,-15));
-        CamTarget_back = CreateEmptyGameObject("CamTarget_back", new Vector3(0,7,15));
+        CamTarget_fwd = CreateEmptyChild("CamTarget_fwd", new Vector3(0,7,-15));
+        CamTarget_back = CreateEmptyChild("CamTarget_back", new Vector3(0,7,15));
 
         modelRotationOffset = new Vector3(0, -90, 0);
 
@@ -108,7 +111,7 @@ public class CarManager : MonoBehaviour
         @param postion Position of the GameObject relative to the parent
         @return Transform variable of which to assign the empty GameObject
     */
-    private Transform CreateEmptyGameObject(string name, Vector3 position) {
+    private Transform CreateEmptyChild(string name, Vector3 position) {
         Transform var;
         var = new GameObject($"{name}").transform;
         var.parent = transform;
@@ -117,8 +120,15 @@ public class CarManager : MonoBehaviour
         return var;
     }
 
-    // Handle movement physics (in FixedUpdate)
+    // Handle movement physics (in FixedUpdate) (also need to find a better solution at some point........)
     private void HandleMovement() {
+        // Flip rightside up if upside down
+        if(upsideDown && heldKey[(int)MoveKey.F]) {
+            transform.position += new Vector3(0,2,0);
+            // Handle rotation
+            transform.Rotate(new Vector3(0,0,-transform.rotation.eulerAngles.z));
+        }
+
         if(heldKey[(int)MoveKey.W] && !upsideDown) {
             _rbCar.AddRelativeForce(Vector3.forward * chosenCar.speed);
             ChangeVolume(engineAudio, 1.0f, audioIncreaseSpeed_engine);
@@ -146,29 +156,22 @@ public class CarManager : MonoBehaviour
         else {
             ChangeVolume(engineAudio, 0.0f, audioIncreaseSpeed_engine);
         }
-
-        // Flip rightside up if upside down
-        if(upsideDown && heldKey[(int)MoveKey.F]) {
-            transform.position += new Vector3(0,2,0);
-            // Handle rotation
-            transform.Rotate(new Vector3(0,0,-transform.rotation.eulerAngles.z));
-        }
     }
 
     // Handle movement input (in Update)
     private void HandleMovementInput() {
         foreach(var k in Enum.GetNames(typeof(MoveKey))) {
             // Ensure that movement key is defined in Unity
-            if(Enum.IsDefined(typeof(KeyCode), k)) {
-                // https://www.loginradius.com/blog/engineering/enum-csharp/
-                KeyCode kc = (KeyCode)Enum.Parse(typeof(KeyCode), k);
-                if (Input.GetKeyDown(kc)) {
-                    heldKey[(int)Enum.Parse(typeof(MoveKey), k)] = true;
-                } else if (Input.GetKeyUp(kc)) {
-                    heldKey[(int)Enum.Parse(typeof(MoveKey), k)] = false;
-                }
-            } else {
+            if(!Enum.IsDefined(typeof(KeyCode), k)) {
                 Debug.Log($"Key {k} does not exist in KeyCode enum. Remove it!");
+                continue;
+            }
+            // https://www.loginradius.com/blog/engineering/enum-csharp/
+            KeyCode kc = (KeyCode)Enum.Parse(typeof(KeyCode), k);
+            if (Input.GetKeyDown(kc)) {
+                heldKey[(int)Enum.Parse(typeof(MoveKey), k)] = true;
+            } else if (Input.GetKeyUp(kc)) {
+                heldKey[(int)Enum.Parse(typeof(MoveKey), k)] = false;
             }
         }
     }
@@ -194,16 +197,6 @@ public class CarManager : MonoBehaviour
         //https://discussions.unity.com/t/how-to-check-if-an-object-is-upside-down/143397
         // If vehicle's up-vector has a down facing component
         // as "transform.up" points down, dot product with "Vector3.down" will be greater negative number
-        // Debug.Log((transform.up, ' ', Vector3.down));
-        if (Vector3.Dot(transform.up, Vector3.down) > -0.5) {
-            upsideDown = true;
-        } else {
-            upsideDown = false;
-        }
-    }
-
-    /* Converts a Vector3 of euler angles to Quaternion */
-    private Quaternion Vec3toQuat(Vector3 v) {
-        return Quaternion.Euler(v.x, v.y, v.z);
+        upsideDown = Vector3.Dot(transform.up, Vector3.down) > -0.5 ? true : false;
     }
 }
