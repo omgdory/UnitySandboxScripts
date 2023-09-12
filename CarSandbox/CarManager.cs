@@ -120,7 +120,7 @@ public class CarManager : MonoBehaviour
         return var;
     }
 
-    // Handle movement physics (in FixedUpdate) (also need to find a better solution at some point........)
+    // Handle movement physics (in FixedUpdate)
     private void HandleMovement() {
         // Flip rightside up if upside down
         if(upsideDown && heldKey[(int)MoveKey.F]) {
@@ -128,34 +128,32 @@ public class CarManager : MonoBehaviour
             // Handle rotation
             transform.Rotate(new Vector3(0,0,-transform.rotation.eulerAngles.z));
         }
-
-        if(heldKey[(int)MoveKey.W] && !upsideDown) {
+        bool usingMotor = false;
+        
+        // Moving (forward and back)
+        if (heldKey[(int)MoveKey.W] && !upsideDown) {
+            usingMotor = true;
             _rbCar.AddRelativeForce(Vector3.forward * chosenCar.speed);
-            ChangeVolume(engineAudio, 1.0f, audioIncreaseSpeed_engine);
-            if(heldKey[(int)MoveKey.D]) {
-                // clockwise relative to object's Y axis
-                _rbCar.AddRelativeTorque(Vector3.up * chosenCar.steeringSpeed);
-            } else if (heldKey[(int)MoveKey.A]) {
-                // counter clockwise relative to object's Y axis
-                _rbCar.AddRelativeTorque(Vector3.down * chosenCar.steeringSpeed);
-            }
-            DampenHorizontalVelocity();
         }
         else if (heldKey[(int)MoveKey.S] && !upsideDown) {
+            usingMotor = true;
             _rbCar.AddRelativeForce(Vector3.back * chosenCar.speed);
-            ChangeVolume(engineAudio, 1.0f, audioIncreaseSpeed_engine);
-            if(heldKey[(int)MoveKey.D]) {
-                // clockwise relative to object's Y axis
-                _rbCar.AddRelativeTorque(Vector3.down * chosenCar.steeringSpeed);
-            } else if (heldKey[(int)MoveKey.A]) {
-                // counter clockwise relative to object's Y axis
-                _rbCar.AddRelativeTorque(Vector3.up * chosenCar.steeringSpeed);
-            }
-            DampenHorizontalVelocity();
         }
-        else {
-            ChangeVolume(engineAudio, 0.0f, audioIncreaseSpeed_engine);
+
+        // Steering
+        Vector3 toSteer = heldKey[(int)MoveKey.W] ? Vector3.up : Vector3.down;
+        if (heldKey[(int)MoveKey.D] && usingMotor) {
+            // clockwise relative to object's Y axis (when W held)
+            _rbCar.AddRelativeTorque(toSteer * chosenCar.steeringSpeed);
         }
+        else if (heldKey[(int)MoveKey.A] && usingMotor) {
+            // counter clockwise relative to object's Y axis (when W held)
+            _rbCar.AddRelativeTorque(-toSteer * chosenCar.steeringSpeed);
+        }
+
+        float targetAudio = usingMotor ? 1.0f: 0.0f;
+        ChangeVolume(engineAudio, targetAudio, audioIncreaseSpeed_engine);
+        DampenHorizontalVelocity();
     }
 
     // Handle movement input (in Update)
